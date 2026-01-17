@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import service from "./auth.service";
 import { RegisterRequestSchema } from "./dtos/register-request.dto";
+import { LoginRequestSchema } from "./dtos/login-request.dto";
 
 class AuthController {
   async register(req: Request, res: Response) {
@@ -16,6 +17,12 @@ class AuthController {
     const result = await service.register(parsed.data!);
 
     res.status(201).json(result);
+  }
+
+  async login(req: Request, res: Response) {
+    const parsed = LoginRequestSchema.safeParse(req.body);
+    const result = await service.login(parsed.data!);
+    res.status(200).json(result);
   }
 }
 

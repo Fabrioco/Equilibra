@@ -4,6 +4,7 @@ import { RegisterRequestDto } from "./dtos/register-request.dto";
 import { prisma } from "../../lib/prisma";
 import * as bcrypt from "bcrypt";
 import { AppError } from "../../middlewares/error";
+import { LoginRequestDto } from "./dtos/login-request.dto";
 
 class AuthService {
   async register(dto: RegisterRequestDto) {
@@ -29,6 +30,39 @@ class AuthService {
         password: hashedPassword,
       },
     });
+
+    const token = await this.generateToken({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+    });
+
+    return {
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    };
+  }
+
+  async login(dto: LoginRequestDto) {
+    const user = await prisma.user.findFirst({
+      where: {
+        email: dto.email,
+      },
+    });
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
+
+    if (!isPasswordValid) {
+      throw new AppError("Invalid password", 401);
+    }
 
     const token = await this.generateToken({
       id: user.id,
