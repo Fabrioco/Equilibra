@@ -1,8 +1,11 @@
 import { z } from "zod";
 
 export const ResetPasswordSchema = z.object({
-  id: z.number(),
   email: z.email("email must be a valid email").trim(),
+  token: z
+    .string()
+    .min(6, "Token must be at least 6 characters")
+    .max(6, "Token must be at most 6 characters"),
   newPassword: z
     .string("newPassword must be a string")
     .trim()
