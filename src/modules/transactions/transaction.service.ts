@@ -146,6 +146,20 @@ class TransactionService {
     });
   }
 
+  async deleteTransaction(id: number, userId: number) {
+    const transaction = await prisma.transaction.findUnique({
+      where: { id },
+    });
+
+    if (!transaction || transaction.userId !== userId) {
+      throw new AppError("Transaction not found", 404);
+    }
+
+    return prisma.transaction.delete({
+      where: { id },
+    });
+  }
+
   private async createOneTime(userId: number, dto: CreateTransactionDto) {
     return prisma.transaction.create({
       data: {

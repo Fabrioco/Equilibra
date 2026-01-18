@@ -7,5 +7,6 @@ router.post("/", controller.createTransaction);
 router.get("/", controller.getTransactions);
 router.get("/:id", controller.getOneTransaction);
 router.put("/:id", controller.updateTransaction);
+router.delete("/:id", controller.deleteTransaction);
 
 export default router;
