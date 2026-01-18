@@ -5,6 +5,7 @@ import {
   TransactionRecurrence,
   TransactionType,
 } from "../../generated/prisma/client";
+import { UpdateTransactionDto } from "./dtos/update-transaction.dto";
 
 export class GetTransactionsQueryDto {
   limit?: number;
@@ -101,10 +102,48 @@ class TransactionService {
     const transaction = await prisma.transaction.findUnique({
       where: { id },
     });
-    if(!transaction){
-      throw new AppError("Transaction not found", 404)
+    if (!transaction) {
+      throw new AppError("Transaction not found", 404);
     }
-    return transaction
+    return transaction;
+  }
+
+  async updateTransaction(
+    id: number,
+    userId: number,
+    dto: UpdateTransactionDto,
+  ) {
+    const transaction = await prisma.transaction.findUnique({
+      where: { id },
+    });
+
+    if (!transaction || transaction.userId !== userId) {
+      throw new AppError("Transaction not found", 404);
+    }
+
+    if (dto.recurrence && dto.recurrence !== transaction.recurrence) {
+      throw new AppError(
+        "Recurrence cannot be changed. Delete and recreate the transaction.",
+        400,
+      );
+    }
+
+    if (transaction.recurrence === "INSTALLMENT") {
+      if (dto.installmentIndex || dto.totalInstallment) {
+        throw new AppError("Installment structure cannot be modified", 400);
+      }
+    }
+
+    return prisma.transaction.update({
+      where: { id },
+      data: {
+        title: dto.title,
+        amount: dto.amount,
+        category: dto.category,
+        type: dto.type,
+        date: dto.date,
+      },
+    });
   }
 
   private async createOneTime(userId: number, dto: CreateTransactionDto) {
