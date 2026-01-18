@@ -97,6 +97,16 @@ class TransactionService {
     });
   }
 
+  async getOne(id: number) {
+    const transaction = await prisma.transaction.findUnique({
+      where: { id },
+    });
+    if(!transaction){
+      throw new AppError("Transaction not found", 404)
+    }
+    return transaction
+  }
+
   private async createOneTime(userId: number, dto: CreateTransactionDto) {
     return prisma.transaction.create({
       data: {

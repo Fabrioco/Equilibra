@@ -7,10 +7,7 @@ class TransactionController {
   async createTransaction(req: Request, res: Response) {
     const dto = CreateTransactionSchema.parse(req.body);
 
-    const transaction = await service.createTransaction(
-      req.user.id,
-      dto,
-    );
+    const transaction = await service.createTransaction(req.user.id, dto);
 
     return res.status(201).json(transaction);
   }
@@ -26,10 +23,14 @@ class TransactionController {
 
     return res.status(200).json({
       items,
-      nextCursor: hasNextPage
-        ? items[items.length - 1].id
-        : null,
+      nextCursor: hasNextPage ? items[items.length - 1].id : null,
     });
+  }
+
+  async getOneTransaction(req: Request, res: Response) {
+    const result = await service.getOne(+req.params.id);
+
+    return res.status(200).json(result);
   }
 }
 
