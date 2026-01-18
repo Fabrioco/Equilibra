@@ -1,7 +1,27 @@
 import { prisma } from "../../lib/prisma";
 import { AppError } from "../../middlewares/error";
 import { CreateTransactionDto } from "./dtos/create-transaction.dto";
-import { TransactionRecurrence } from "../../generated/prisma/client";
+import {
+  TransactionRecurrence,
+  TransactionType,
+} from "../../generated/prisma/client";
+
+export class GetTransactionsQueryDto {
+  limit?: number;
+  cursor?: number;
+
+  startDate?: Date;
+  endDate?: Date;
+
+  type?: TransactionType;
+  category?: string;
+  recurrence?: TransactionRecurrence;
+
+  minAmount?: number;
+  maxAmount?: number;
+
+  search?: string;
+}
 
 class TransactionService {
   async createTransaction(userId: number, dto: CreateTransactionDto) {
@@ -18,6 +38,63 @@ class TransactionService {
       default:
         throw new AppError("Invalid recurrence type", 400);
     }
+  }
+  async getTransactions(userId: number, query: GetTransactionsQueryDto) {
+    const {
+      limit = 20,
+      cursor,
+      startDate,
+      endDate,
+      type,
+      category,
+      recurrence,
+      minAmount,
+      maxAmount,
+      search,
+    } = query;
+
+    return prisma.transaction.findMany({
+      take: limit + 1,
+      skip: cursor ? 1 : 0,
+      cursor: cursor ? { id: cursor } : undefined,
+
+      where: {
+        userId,
+
+        ...(type && { type }),
+        ...(category && { category }),
+        ...(recurrence && { recurrence }),
+
+        ...(startDate || endDate
+          ? {
+              date: {
+                ...(startDate && { gte: startDate }),
+                ...(endDate && { lte: endDate }),
+              },
+            }
+          : {}),
+
+        ...(minAmount || maxAmount
+          ? {
+              amount: {
+                ...(minAmount && { gte: minAmount }),
+                ...(maxAmount && { lte: maxAmount }),
+              },
+            }
+          : {}),
+
+        ...(search && {
+          title: {
+            contains: search,
+            mode: "insensitive",
+          },
+        }),
+      },
+
+      orderBy: {
+        date: "desc",
+      },
+    });
   }
 
   private async createOneTime(userId: number, dto: CreateTransactionDto) {
