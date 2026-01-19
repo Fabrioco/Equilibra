@@ -5,6 +5,7 @@ import { prisma } from "../../lib/prisma";
 import * as bcrypt from "bcrypt";
 import { AppError } from "../../middlewares/error";
 import { LoginRequestDto } from "./dtos/login-request.dto";
+import { UpdateMeDto } from "./dtos/update-me.dto";
 
 class AuthService {
   async register(dto: RegisterRequestDto) {
@@ -95,6 +96,31 @@ class AuthService {
     }
 
     return user;
+  }
+
+  async updateMe(userId: number, dto: UpdateMeDto) {
+    const user = await prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (!user) {
+      throw new AppError("User not found", 404);
+    }
+    return await prisma.user.update({
+      where: {
+        id: userId,
+      },
+      data: {
+        name: dto.name,
+        email: dto.email,
+        password: dto.password,
+      },
+      omit: {
+        password: true,
+      },
+    });
   }
 
   private async hashPassword(password: string) {

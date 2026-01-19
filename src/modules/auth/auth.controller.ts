@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import service from "./auth.service";
 import { RegisterRequestSchema } from "./dtos/register-request.dto";
 import { LoginRequestSchema } from "./dtos/login-request.dto";
+import { UpdateMeSchema } from "./dtos/update-me.dto";
 
 class AuthController {
   async register(req: Request, res: Response) {
@@ -27,6 +28,12 @@ class AuthController {
 
   async me(req: Request, res: Response) {
     const result = await service.me(req.user.id);
+    res.status(200).json(result);
+  }
+
+  async updateMe(req: Request, res: Response) {
+    const parsed = UpdateMeSchema.safeParse(req.body);
+    const result = await service.updateMe(req.user.id, parsed.data!);
     res.status(200).json(result);
   }
 }
