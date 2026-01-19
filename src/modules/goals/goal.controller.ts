@@ -4,14 +4,9 @@ import service from "./goal.service";
 
 class goalController {
   async create(req: Request, res: Response) {
-    try {
-      const dto = CreateGoalSchema.parse(req.body);
-      const result = await service.create(req.user.id, dto);
-      return res.status(201).json(result);
-    } catch (error) {
-      console.log(error);
-      return res.status(400).json(error);
-    }
+    const dto = CreateGoalSchema.parse(req.body);
+    const result = await service.create(req.user.id, dto);
+    return res.status(201).json(result);
   }
 }
 export default new goalController();
