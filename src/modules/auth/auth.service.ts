@@ -6,6 +6,7 @@ import * as bcrypt from "bcrypt";
 import { AppError } from "../../middlewares/error";
 import { LoginRequestDto } from "./dtos/login-request.dto";
 import { UpdateMeDto } from "./dtos/update-me.dto";
+import { Plan } from "../../generated/prisma/enums";
 
 class AuthService {
   async register(dto: RegisterRequestDto) {
@@ -44,6 +45,11 @@ class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
+        plan: user.plan,
+        privacyMode: user.privacyMode,
+        enableNotifications: user.enableNotifications,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     };
   }
@@ -77,6 +83,11 @@ class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
+        plan: user.plan,
+        privacyMode: user.privacyMode,
+        enableNotifications: user.enableNotifications,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
       },
     };
   }
@@ -125,6 +136,9 @@ class AuthService {
       name?: string;
       email?: string;
       password?: string;
+      plan?: Plan;
+      privacyMode?: boolean;
+      enableNotifications?: boolean;
     } = {};
 
     if (dto.name) updateData.name = dto.name;
@@ -132,6 +146,11 @@ class AuthService {
     if (dto.password) {
       updateData.password = await this.hashPassword(dto.password);
     }
+    if (dto.plan) updateData.plan = dto.plan;
+    if (typeof dto.privacyMode === "boolean")
+      updateData.privacyMode = dto.privacyMode;
+    if (typeof dto.enableNotifications === "boolean")
+      updateData.enableNotifications = dto.enableNotifications;
 
     return await prisma.user.update({
       where: {

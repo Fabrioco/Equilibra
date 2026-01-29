@@ -8,51 +8,61 @@ datasource db {
 }
 
 model User {
+  id        Int      @id @default(autoincrement())
   name      String
   email     String   @unique
   password  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  id        Int      @id @default(autoincrement())
+
   resetToken     String?
   tokenExpiresAt DateTime?
 
-  transaction Transaction[]
-  goal Goal[]
+  privacyMode         Boolean @default(false)
+  enableNotifications Boolean @default(true)
+  plan                Plan    @default(FREE)
+
+  transactions Transaction[]
+  goals        Goal[]
 }
 
 model Transaction {
-  id Int @id @default(autoincrement())
-  title String
-  amount Decimal @db.Decimal(10,2)
-  category String
-  type TransactionType
+  id         Int                   @id @default(autoincrement())
+  title      String
+  amount     Decimal               @db.Decimal(10, 2)
+  category   String
+  type       TransactionType
   recurrence TransactionRecurrence @default(ONE_TIME)
 
-  totalInstallment Int?
-  installmentIndex Int?
+  // Parcelamento
+  totalInstallment   Int?
+  installmentIndex   Int?
   installmentGroupId String?
 
-  date DateTime @db.Date
+  date      DateTime @db.Date
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   userId Int
-  user User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Goal {
-  id Int @id @default(autoincrement())
-  title String
-  amountCurrent Decimal @db.Decimal(10,2)
-  amountGoal Decimal @db.Decimal(10,2)
-  date DateTime @db.Date
+  id            Int      @id @default(autoincrement())
+  title         String
+  amountCurrent Decimal  @default(0) @db.Decimal(10, 2)
+  amountGoal    Decimal  @db.Decimal(10, 2)
+  date          DateTime @db.Date
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt()
+  updatedAt DateTime @updatedAt
 
   userId Int
-  user User @relation(fields: [userId], references: [id])
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum TransactionType {
@@ -64,4 +74,10 @@ enum TransactionRecurrence {
   ONE_TIME
   FIXED
   INSTALLMENT
+}
+
+enum Plan {
+  FREE
+  PRO
+  ULTIMATE
 }
