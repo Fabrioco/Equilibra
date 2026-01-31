@@ -5,7 +5,10 @@ CREATE TYPE "TransactionType" AS ENUM ('INCOME', 'EXPENSE');
 CREATE TYPE "TransactionRecurrence" AS ENUM ('ONE_TIME', 'FIXED', 'INSTALLMENT');
 
 -- CreateEnum
-CREATE TYPE "Plan" AS ENUM ('FREE', 'PRO', 'ULTIMATE');
+CREATE TYPE "Plan" AS ENUM ('FREE', 'ESSENCIAL', 'PRO', 'ELITE');
+
+-- CreateEnum
+CREATE TYPE "subscriptionStatus" AS ENUM ('ATIVO', 'CANCELADO', 'PENDENTE');
 
 -- CreateTable
 CREATE TABLE "User" (
@@ -20,6 +23,9 @@ CREATE TABLE "User" (
     "privacyMode" BOOLEAN NOT NULL DEFAULT false,
     "enableNotifications" BOOLEAN NOT NULL DEFAULT true,
     "plan" "Plan" NOT NULL DEFAULT 'FREE',
+    "asaasCustomerId" TEXT,
+    "subscriptionStatus" "subscriptionStatus",
+    "asaasSubscriptionId" TEXT,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -59,6 +65,9 @@ CREATE TABLE "Goal" (
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_asaasCustomerId_key" ON "User"("asaasCustomerId");
 
 -- CreateIndex
 CREATE INDEX "Transaction_userId_idx" ON "Transaction"("userId");

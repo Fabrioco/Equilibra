@@ -22,6 +22,10 @@ model User {
   enableNotifications Boolean @default(true)
   plan                Plan    @default(FREE)
 
+  asaasCustomerId String? @unique
+  subscriptionStatus subscriptionStatus?
+  asaasSubscriptionId String?
+
   transactions Transaction[]
   goals        Goal[]
 }
@@ -77,7 +81,14 @@ enum TransactionRecurrence {
 }
 
 enum Plan {
-  FREE
-  PRO
-  ULTIMATE
+FREE      
+  ESSENCIAL 
+  PRO       
+  ELITE     
+}
+
+enum subscriptionStatus {
+  ATIVO
+  CANCELADO
+  PENDENTE
 }
