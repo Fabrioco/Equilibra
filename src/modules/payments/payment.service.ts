@@ -47,22 +47,27 @@ class PaymentService {
     return customerId;
   }
 
-async createSubscription(customerId: string, value: number) {
-  // Criamos uma data para AMANHÃ
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const nextDueDate = tomorrow.toISOString().split("T")[0];
+  async createSubscription(userId: number, customerId: string, value: number) {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const nextDueDate = tomorrow.toISOString().split("T")[0];
 
-  const { data } = await asaasApi.post("/subscriptions", {
-    customer: customerId,
-    billingType: "CREDIT_CARD",
-    value: value,
-    nextDueDate: nextDueDate, // Sempre amanhã
-    cycle: "MONTHLY",
-    description: `Plano Assinatura - R$ ${value}`,
-  });
-  return data;
-}
+    const { data } = await asaasApi.post("/subscriptions", {
+      customer: customerId,
+      billingType: "CREDIT_CARD",
+      value: value,
+      nextDueDate: nextDueDate,
+      cycle: "MONTHLY",
+      description: `Plano Assinatura - R$ ${value}`,
+    });
+
+    // ✅ SALVE O ID AQUI
+    if (data.id) {
+      await this.saveSubscriptionId(userId, data.id);
+    }
+
+    return data;
+  }
   async createPixPayment(customerId: string, value: number) {
     const { data } = await asaasApi.post("/payments", {
       customer: customerId,
@@ -113,27 +118,31 @@ async createSubscription(customerId: string, value: number) {
   }
 
   async cancelSubscription(userId: number) {
-  const user = await prisma.user.findUnique({ where: { id: userId } });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
 
-  if (!user?.asaasSubscriptionId) {
-    throw new Error("Usuário não possui uma assinatura ativa.");
+    console.log(user);
+
+    if (!user?.asaasSubscriptionId) {
+      throw new Error("Usuário não possui uma assinatura ativa.");
+    }
+
+    // Deleta a assinatura no Asaas
+    const { data } = await asaasApi.delete(
+      `/subscriptions/${user.asaasSubscriptionId}`,
+    );
+
+    // Opcional: Já atualiza no banco na hora (ou espera o Webhook)
+    await prisma.user.update({
+      where: { id: userId },
+      data: {
+        subscriptionStatus: "CANCELADO",
+        plan: "FREE",
+        asaasSubscriptionId: null,
+      },
+    });
+
+    return data;
   }
-
-  // Deleta a assinatura no Asaas
-  const { data } = await asaasApi.delete(`/subscriptions/${user.asaasSubscriptionId}`);
-
-  // Opcional: Já atualiza no banco na hora (ou espera o Webhook)
-  await prisma.user.update({
-    where: { id: userId },
-    data: { 
-      subscriptionStatus: "CANCELADO",
-      plan: "FREE",
-      asaasSubscriptionId: null 
-    },
-  });
-
-  return data;
-}
 }
 
 export default new PaymentService();

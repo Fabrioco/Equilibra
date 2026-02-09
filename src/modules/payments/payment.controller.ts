@@ -46,6 +46,7 @@ export class PaymentController {
       } else {
         // O Cartão gera uma ASSINATURA
         const subscription = await service.createSubscription(
+          req.user.id,
           customerId,
           planValue,
         );
@@ -138,7 +139,8 @@ export class PaymentController {
         .status(200)
         .json({ message: "Assinatura cancelada com sucesso." });
     } catch (error: any) {
-      return res.status(400).json({ error: error.message });
+      console.error(error);
+      return res.status(500).json({ error: "Erro ao cancelar assinatura." });
     }
   }
 }
