@@ -35,6 +35,12 @@ class AuthService {
         name: dto.name,
         email: dto.email,
         password: hashedPassword,
+        plan: Plan.FREE,
+        privacyMode: false,
+        enableNotifications: true,
+        asaasCustomerId: null,
+        asaasSubscriptionId: null,
+        subscriptionStatus: "PENDENTE",
       },
     });
 
